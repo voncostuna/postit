@@ -52,6 +52,17 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 48px;
+            position: relative;
+            z-index: 9999;
+        }
+
+        .ellipse,
+        .contact-ellipse,
+        .about-section::before,
+        .about-section::after,
+        .about-corners::before,
+        .about-corners::after {
+            pointer-events: none;
         }
 
         .brand img {

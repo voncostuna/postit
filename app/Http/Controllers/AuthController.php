@@ -42,7 +42,7 @@ class AuthController extends Controller
                 ->with('success', 'Admin account created successfully!');
         }
 
-        return redirect()->route('dashboard')
+        return redirect()->route('user.dashboard')
             ->with('success', 'Account created successfully!');
     }
 
@@ -99,7 +99,7 @@ class AuthController extends Controller
         // redirect based on role
         return $user->role === 'admin'
             ? redirect()->route('admin.dashboard')->with('success', 'Welcome Admin!')
-            : redirect()->route('dashboard')->with('success', 'Login successful!');
+            : redirect()->route('user.dashboard')->with('success', 'Login successful!');
     }
 
 
