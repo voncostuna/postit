@@ -480,7 +480,7 @@ $oldCategory = old('category_id', '');
                     </button>
 
                     <button class="action-pill" type="submit" name="status" value="published">
-                        PUBLISHED
+                        PUBLISH
                     </button>
                 </div>
 

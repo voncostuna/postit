@@ -33,6 +33,6 @@ class Article extends Model
     // If you have a User model:
     public function author()
     {
-        return $this->belongsTo(User::class, 'author_id');
+        return $this->belongsTo(\App\Models\User::class, 'author_id');
     }
 }
