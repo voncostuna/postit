@@ -1,18 +1,16 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| USER MANAGEMENT
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Displays all registered users.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - User list table
+| - Edit, deactivate, or delete users
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>Users</h1>
 @endsection

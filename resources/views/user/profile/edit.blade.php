@@ -1,18 +1,16 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| USER PROFILE
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Allows the user to update personal information.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - Profile update form
+| - Password change option
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>My Profile</h1>
 @endsection

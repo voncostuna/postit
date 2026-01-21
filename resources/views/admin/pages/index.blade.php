@@ -1,18 +1,17 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| LANDING PAGE SECTIONS
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Admin-managed sections that appear on the landing page
+| (About Us, Contact, etc.).
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - List all page sections
+| - Add reorder & visibility toggles
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>Pages (Landing Sections)</h1>
 @endsection

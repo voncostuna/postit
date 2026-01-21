@@ -1,18 +1,16 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| CREATE USER CONTENT
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Form for creating a new content item.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - Build content creation form
+| - Add validation error display
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>Create Content</h1>
 @endsection

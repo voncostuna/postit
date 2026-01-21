@@ -1,18 +1,15 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| CREATE LANDING PAGE SECTION
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Allows admin to add a new section to the landing page.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - Section creation form
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>Create Page Section</h1>
 @endsection

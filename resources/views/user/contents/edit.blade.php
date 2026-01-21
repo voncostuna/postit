@@ -1,18 +1,16 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| EDIT USER CONTENT
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Allows the user to edit their existing content.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - Load existing content data
+| - Implement update form
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>Edit Content</h1>
 @endsection

@@ -1,19 +1,16 @@
-<!doctype html>
-<html lang="en">
+{{-- 
+|--------------------------------------------------------------------------
+| ADMIN DASHBOARD
+|--------------------------------------------------------------------------
+| Overview page for administrators.
+|
+| TODO:
+| - Show system statistics
+| - Recent activity summary
+|--------------------------------------------------------------------------
+--}}
+@extends('layouts.app')
 
-<head>
-    <meta charset="utf-8">
-    <title>Admin Dashboard | Post It!</title>
-</head>
-
-<body>
+@section('content')
     <h1>Admin Dashboard</h1>
-    <p>Welcome, {{ auth()->user()->name }} (Role: {{ auth()->user()->role }})</p>
-
-    <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit">Logout</button>
-    </form>
-</body>
-
-</html>
+@endsection

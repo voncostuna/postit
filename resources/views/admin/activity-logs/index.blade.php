@@ -1,18 +1,15 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| SYSTEM ACTIVITY LOGS
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Displays system-wide activity logs for administrators.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - Add filters by user / date / action
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>Activity Logs</h1>
 @endsection

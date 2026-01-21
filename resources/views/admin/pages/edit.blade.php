@@ -1,18 +1,16 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| EDIT LANDING PAGE SECTION
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Allows admin to update an existing landing page section.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - Load section data
+| - Update content and visibility
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>Edit Page Section</h1>
 @endsection

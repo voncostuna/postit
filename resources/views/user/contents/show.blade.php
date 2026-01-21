@@ -1,18 +1,15 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| VIEW USER CONTENT
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Displays a single content item created by the user.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - Show content details
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>View Content</h1>
 @endsection

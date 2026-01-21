@@ -1,18 +1,15 @@
 {{-- 
 |--------------------------------------------------------------------------
-| USER DASHBOARD
+| USER ACTIVITY LOGS
 |--------------------------------------------------------------------------
-| Main landing page after user login.
+| Shows activity history for the logged-in user.
 |
 | TODO:
-| - Show user summary
-| - Recent contents
-| - Activity overview
-| - Logout
+| - Display activity log list
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>User Dashboard</h1>
+    <h1>My Activity Logs</h1>
 @endsection
