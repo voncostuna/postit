@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -38,9 +39,9 @@ class ContentController extends Controller
         }
 
         $articles = $query
-            ->orderByDesc('updated_at')  
+            ->orderByDesc('updated_at')
             ->paginate(10)
-            ->appends($request->query());  
+            ->appends($request->query());
 
         return view('user.contents.index', compact('articles'));
     }
@@ -76,12 +77,6 @@ class ContentController extends Controller
         $baseSlug = Str::slug($validated['title']);
         $slug = $baseSlug ?: Str::random(8);
 
-        // If you want strict uniqueness, uncomment this loop:
-        // $counter = 2;
-        // while (Article::where('slug', $slug)->exists()) {
-        //     $slug = $baseSlug . '-' . $counter++;
-        // }
-
         $imagePath = null;
         if ($request->hasFile('featured_image')) {
             // stores to storage/app/public/articles/...
@@ -103,6 +98,18 @@ class ContentController extends Controller
             'category_id' => $validated['category_id'] ?? null,
             'author_id' => Auth::id(),
             'published_at' => $publishedAt,
+        ]);
+
+        // ✅ ACTIVITY LOG: Create content
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'create',
+            'model_type'  => 'Article',
+            'model_id'    => $article->id,
+            'description' => 'Created content: ' . $article->title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
         ]);
 
         return redirect()
@@ -156,15 +163,12 @@ class ContentController extends Controller
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
-        // If title changed, you may want to regenerate slug (optional).
-        // Here: keep existing slug stable unless empty.
         if (empty($article->slug)) {
             $article->slug = Str::slug($validated['title']) ?: Str::random(8);
         }
 
         // Handle image replacement
         if ($request->hasFile('featured_image')) {
-            // delete old image if exists
             if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
                 Storage::disk('public')->delete($article->featured_image);
             }
@@ -172,9 +176,7 @@ class ContentController extends Controller
             $article->featured_image = $request->file('featured_image')->store('articles', 'public');
         }
 
-        // Handle publish date rules:
-        // - If switching to published and published_at is null -> set now
-        // - If switching back to draft -> null published_at
+        // publish rules
         if ($validated['status'] === 'published') {
             if (!$article->published_at) {
                 $article->published_at = now();
@@ -191,6 +193,18 @@ class ContentController extends Controller
 
         $article->save();
 
+        // ✅ ACTIVITY LOG: Update content
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'update',
+            'model_type'  => 'Article',
+            'model_id'    => $article->id,
+            'description' => 'Updated content: ' . $article->title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
+        ]);
+
         return redirect()
             ->route('user.contents.show', $article->id)
             ->with('success', 'Content updated successfully.');
@@ -199,17 +213,31 @@ class ContentController extends Controller
     /**
      * Remove the specified resource from storage (OWN ONLY).
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $article = Article::query()
             ->where('author_id', Auth::id())
             ->findOrFail($id);
+
+        $title = $article->title; // keep title for log message after delete
 
         if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
             Storage::disk('public')->delete($article->featured_image);
         }
 
         $article->delete();
+
+        // ✅ ACTIVITY LOG: Delete content
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'delete',
+            'model_type'  => 'Article',
+            'model_id'    => (int) $id,
+            'description' => 'Deleted content: ' . $title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
+        ]);
 
         return redirect()
             ->route('user.contents.index')

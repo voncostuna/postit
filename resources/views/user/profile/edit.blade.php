@@ -145,6 +145,52 @@
         font-weight: 700;
         color:#888;
     }
+
+    /* ✅ Custom pagination (so UI won't look broken) */
+    .pagination-wrap{
+        margin-top: 14px;
+        display:flex;
+        justify-content:center;
+    }
+
+    .paginate-bar{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        background:#fff;
+        border: 1px solid #eee;
+        box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        border-radius: 999px;
+        padding: 10px 12px;
+    }
+
+    .paginate-btn{
+        height: 34px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: none;
+        font-weight: 900;
+        cursor: pointer;
+        background: var(--postit-purple);
+        color: #fff;
+        text-decoration: none;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .paginate-btn.disabled{
+        opacity: .45;
+        pointer-events: none;
+    }
+
+    .paginate-info{
+        font-weight: 900;
+        color: var(--postit-purple);
+        font-size: 13px;
+        padding: 0 6px;
+        white-space: nowrap;
+    }
 </style>
 @endpush
 
@@ -196,9 +242,45 @@
                 @foreach($activities as $activity)
                     <div class="act-item">
                         <div class="act-avatar">{{ $initials }}</div>
-                        <div>{{ $activity->description }}</div>
+
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <div>{{ $activity->description }}</div>
+
+                            <div style="font-size:12px; opacity:.85; font-weight:700;">
+                                {{ optional($activity->created_at)->format('M j, Y g:i A') }}
+                                @if(!empty($activity->action))
+                                    • {{ strtoupper($activity->action) }}
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 @endforeach
+
+                {{-- ✅ Replace default Laravel links() with custom UI --}}
+                @if($activities->lastPage() > 1)
+                    <div class="pagination-wrap">
+                        <div class="paginate-bar">
+                            {{-- Prev --}}
+                            @if($activities->onFirstPage())
+                                <span class="paginate-btn disabled">PREV</span>
+                            @else
+                                <a class="paginate-btn" href="{{ $activities->previousPageUrl() }}">PREV</a>
+                            @endif
+
+                            {{-- Info --}}
+                            <div class="paginate-info">
+                                Page {{ $activities->currentPage() }} of {{ $activities->lastPage() }}
+                            </div>
+
+                            {{-- Next --}}
+                            @if($activities->hasMorePages())
+                                <a class="paginate-btn" href="{{ $activities->nextPageUrl() }}">NEXT</a>
+                            @else
+                                <span class="paginate-btn disabled">NEXT</span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             @else
                 <div class="empty-state">
                     No activity yet.
