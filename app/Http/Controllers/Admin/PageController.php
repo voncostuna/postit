@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,19 @@ class PageController extends Controller
         // published_at if published
         $data['published_at'] = ($data['status'] === 'published') ? now() : null;
 
-        Page::create($data);
+        $page = Page::create($data);
+
+        // ✅ ACTIVITY LOG (ADMIN CREATE PAGE)
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'admin_create_page',
+            'model_type'  => Page::class,
+            'model_id'    => $page->id,
+            'description' => 'Admin created page: ' . $page->title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
+        ]);
 
         return redirect()
             ->route('admin.pages.index')
@@ -88,28 +101,52 @@ class PageController extends Controller
 
         // published_at logic
         if ($data['status'] === 'published') {
-            // draft -> published (set if empty)
             if ($page->status !== 'published' || $page->published_at === null) {
                 $data['published_at'] = now();
             } else {
-                // already published, keep original timestamp
                 $data['published_at'] = $page->published_at;
             }
         } else {
-            // published -> draft
             $data['published_at'] = null;
         }
 
         $page->update($data);
+
+        // ✅ ACTIVITY LOG (ADMIN UPDATE PAGE)
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'admin_update_page',
+            'model_type'  => Page::class,
+            'model_id'    => $page->id,
+            'description' => 'Admin updated page: ' . $page->title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
+        ]);
 
         return redirect()
             ->route('admin.pages.index')
             ->with('success', 'Page updated successfully.');
     }
 
-    public function destroy(Page $page)
+    public function destroy(Request $request, Page $page)
     {
+        $title = $page->title;
+        $pageId = $page->id;
+
         $page->delete();
+
+        // ✅ ACTIVITY LOG (ADMIN DELETE PAGE)
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'admin_delete_page',
+            'model_type'  => Page::class,
+            'model_id'    => $pageId,
+            'description' => 'Admin deleted page: ' . $title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
+        ]);
 
         return redirect()
             ->route('admin.pages.index')
@@ -131,8 +168,8 @@ class PageController extends Controller
 
         while (
             Page::where('slug', $slug)
-            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
-            ->exists()
+                ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
         ) {
             $slug = $slugBase . '-' . $i++;
         }

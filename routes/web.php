@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ContentController as AdminContentController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Admin\ActivityLogController as AdminActivityLogController;
+use App\Http\Controllers\Admin\ProfileController as AdminProfileController; // ✅ ADDED
 
 use App\Models\Page;
 
@@ -30,11 +31,12 @@ Route::get('/', function () {
     $about = Page::published()->where('slug', 'about-us')->first();
     $contact = Page::published()->where('slug', 'contact')->first();
 
-    // Dynamic nav tabs: all published pages (you can filter/order later)
+    // Dynamic nav tabs: all published pages
     $navPages = Page::published()
         ->orderBy('title')
         ->get(['title', 'slug']);
 
+    // ✅ FIX: landing view is in resources/views/landing.blade.php
     return view('landing', compact('about', 'contact', 'navPages'));
 })->name('home');
 
@@ -43,16 +45,17 @@ Route::get('/p/{slug}', function (string $slug) {
 
     // If you prefer About/Contact as landing anchors, redirect these slugs
     if ($slug === 'about-us') {
-        return redirect()->route('home') . '#about';
+        return redirect()->to(route('home') . '#about');
     }
 
     if ($slug === 'contact') {
-        return redirect()->route('home') . '#contact';
+        return redirect()->to(route('home') . '#contact');
     }
 
     $page = Page::published()->where('slug', $slug)->firstOrFail();
 
-    return view('page', compact('page'));
+    // ✅ FIX: same landing view renders single page when $page is present
+    return view('landing', compact('page'));
 })->name('page.show');
 
 /*
@@ -115,6 +118,19 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->as('admin.')->group(
     Route::resource('pages', AdminPageController::class);
 
     Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->name('activity-logs.index');
+
+    /*
+    |----------------------------------------------------------------------
+    | ✅ ADMIN PROFILE (My Profile page like your screenshot)
+    |----------------------------------------------------------------------
+    */
+    Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
+
+    // logout button on admin profile page
+    Route::post('/logout', [AdminProfileController::class, 'logout'])->name('logout');
+
+    // delete account button on admin profile page
+    Route::delete('/profile', [AdminProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 /*

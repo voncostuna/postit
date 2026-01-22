@@ -320,7 +320,6 @@ $initials = collect(explode(' ', $displayName))
             <div class="activity-head">RECENT ACTIVITIES</div>
 
             @if(isset($activities) && $activities->count())
-<<<<<<< HEAD
                 @foreach($activities as $activity)
                     <div class="act-item">
                         <div class="act-avatar">{{ $initials }}</div>
@@ -363,14 +362,6 @@ $initials = collect(explode(' ', $displayName))
                         </div>
                     </div>
                 @endif
-=======
-            @foreach($activities as $activity)
-            <div class="act-item">
-                <div class="act-avatar">{{ $initials }}</div>
-                <div>{{ $activity->description }}</div>
-            </div>
-            @endforeach
->>>>>>> 7f8bd43ed6591617e8c3c2e79658bbca980013ed
             @else
             <div class="empty-state">
                 No activity yet.

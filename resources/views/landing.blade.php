@@ -489,6 +489,59 @@
             letter-spacing: .2px;
         }
 
+        /* =========================
+           SINGLE PAGE (NEW)
+           ========================= */
+        .single-page {
+            max-width: 980px;
+            margin: 40px auto 0;
+            padding: 0 48px 40px;
+        }
+
+        .single-card {
+            background: #fff;
+            border: 1px solid rgba(0,0,0,.12);
+            border-radius: 14px;
+            box-shadow: 0 12px 26px rgba(0,0,0,.10);
+            padding: 26px 28px;
+        }
+
+        .single-title {
+            font-size: 44px;
+            line-height: 1.1;
+            margin: 0 0 16px;
+            color: var(--navy);
+            font-weight: 900;
+        }
+
+        .single-content {
+            font-size: 16px;
+            line-height: 1.75;
+            color: #222;
+        }
+
+        .single-content :is(h1,h2,h3) {
+            color: var(--purple);
+            margin-top: 20px;
+        }
+
+        .single-content a {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .single-back {
+            display: inline-block;
+            margin: 18px 0 0;
+            color: var(--navy);
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .single-back:hover {
+            color: var(--green);
+        }
+
         /* MOBILE */
         @media (max-width: 900px) {
             .hero {
@@ -559,21 +612,29 @@
                 font-size: 16px;
                 padding: 0 16px;
             }
+
+            .single-page {
+                padding: 0 24px 40px;
+            }
+
+            .single-title {
+                font-size: 34px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <header class="topbar">
-        <div class="brand">
-            <img src="{{ asset('assets/images/logo.svg') }}" alt="Post It!">
-        </div>
+<header class="topbar">
+    <div class="brand">
+        <img src="{{ asset('assets/images/logo.svg') }}" alt="Post It!">
+    </div>
 
-        <nav class="nav">
-            <a class="active" href="{{ route('home') }}">Home</a>
+    <nav class="nav">
+        <a class="{{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a>
 
-            @php
+        @php
             // We want About + Contact as in-page sections, everything else goes to /p/{slug}
             $aboutSlug = 'about-us';
             $contactSlug = 'contact';
@@ -583,18 +644,37 @@
             $aboutNav = $nav->firstWhere('slug', $aboutSlug);
             $contactNav = $nav->firstWhere('slug', $contactSlug);
             $otherNav = $nav->reject(fn($p) => in_array($p->slug, [$aboutSlug, $contactSlug]));
-            @endphp
+        @endphp
 
-            <a href="#about">{{ $aboutNav?->title ?? 'About Us' }}</a>
-            <a href="#contact">{{ $contactNav?->title ?? 'Contact' }}</a>
+        {{-- ✅ FIX: always route back to home for anchors so they work on /p/{slug} --}}
+        <a href="{{ route('home') }}#about">{{ $aboutNav?->title ?? 'About Us' }}</a>
+        <a href="{{ route('home') }}#contact">{{ $contactNav?->title ?? 'Contact' }}</a>
 
-            @foreach($otherNav as $p)
+        @foreach($otherNav as $p)
             <a href="{{ route('page.show', $p->slug) }}">{{ $p->title }}</a>
-            @endforeach
-        </nav>
+        @endforeach
+    </nav>
 
-        <a href="{{ route('login') }}" class="login-btn">Login</a>
-    </header>
+    <a href="{{ route('login') }}" class="login-btn">Login</a>
+</header>
+
+{{-- ========================================================= --}}
+{{-- ✅ SINGLE PAGE MODE (/p/{slug}) --}}
+{{-- ========================================================= --}}
+@if(isset($page))
+    <main class="single-page">
+        <div class="single-card">
+            <h1 class="single-title">{{ $page->title }}</h1>
+            <div class="single-content">{!! $page->content !!}</div>
+
+            <a class="single-back" href="{{ route('home') }}">← Back to Home</a>
+        </div>
+    </main>
+
+{{-- ========================================================= --}}
+{{-- ✅ HOMEPAGE MODE (/) --}}
+{{-- ========================================================= --}}
+@else
 
     <section class="hero">
         <div class="left">
@@ -638,54 +718,54 @@
 
             {{-- If admin published "about-us", show DB content. Otherwise show fallback text. --}}
             @if($about && $about->content)
-            {!! $about->content !!}
+                {!! $about->content !!}
             @else
-            <div class="about-headings">
-                <div class="about-title">ABOUT US</div>
-                <div class="about-title right">OUR MISSION</div>
-            </div>
-
-            <div class="about-grid">
-                <div class="about-col">
-                    <p>
-                        Post It! is a content management platform designed to make creating,
-                        organizing, and publishing digital content simple and efficient. The
-                        system provides users with an intuitive space to write, edit, and manage
-                        articles while keeping everything structured and easy to access.
-                    </p>
-
-                    <p>
-                        Built with usability and organization in mind, Post It! supports different
-                        user roles to ensure that content is managed responsibly. Administrators oversee
-                        the platform and manage published content, while users are given the tools they
-                        need to contribute and maintain their own articles.
-                    </p>
-
-                    <p>
-                        Our goal is to provide a clean and reliable platform that helps individuals and
-                        teams focus on what matters most — sharing ideas, information, and stories in a
-                        clear and organized way. Whether for blogs, announcements, or informational content,
-                        Post It! offers a simple solution for effective content publishing.
-                    </p>
+                <div class="about-headings">
+                    <div class="about-title">ABOUT US</div>
+                    <div class="about-title right">OUR MISSION</div>
                 </div>
 
-                <div class="about-col">
-                    <p>
-                        At Post It!, our mission is to provide a simple and welcoming space where people
-                        can create, share, and manage meaningful content with ease. We aim to empower users
-                        to express ideas, tell stories, and organize information through a platform that values
-                        clarity, creativity, and accessibility.
-                    </p>
+                <div class="about-grid">
+                    <div class="about-col">
+                        <p>
+                            Post It! is a content management platform designed to make creating,
+                            organizing, and publishing digital content simple and efficient. The
+                            system provides users with an intuitive space to write, edit, and manage
+                            articles while keeping everything structured and easy to access.
+                        </p>
 
-                    <div class="about-subhead">OUR VISION</div>
+                        <p>
+                            Built with usability and organization in mind, Post It! supports different
+                            user roles to ensure that content is managed responsibly. Administrators oversee
+                            the platform and manage published content, while users are given the tools they
+                            need to contribute and maintain their own articles.
+                        </p>
 
-                    <p>
-                        Our vision is to become a trusted digital space where creativity and communication thrive.
-                        We envision Post It! as a platform that encourages thoughtful sharing, supports content creators
-                        of all levels, and fosters a community built on collaboration, expression, and growth.
-                    </p>
+                        <p>
+                            Our goal is to provide a clean and reliable platform that helps individuals and
+                            teams focus on what matters most — sharing ideas, information, and stories in a
+                            clear and organized way. Whether for blogs, announcements, or informational content,
+                            Post It! offers a simple solution for effective content publishing.
+                        </p>
+                    </div>
+
+                    <div class="about-col">
+                        <p>
+                            At Post It!, our mission is to provide a simple and welcoming space where people
+                            can create, share, and manage meaningful content with ease. We aim to empower users
+                            to express ideas, tell stories, and organize information through a platform that values
+                            clarity, creativity, and accessibility.
+                        </p>
+
+                        <div class="about-subhead">OUR VISION</div>
+
+                        <p>
+                            Our vision is to become a trusted digital space where creativity and communication thrive.
+                            We envision Post It! as a platform that encourages thoughtful sharing, supports content creators
+                            of all levels, and fosters a community built on collaboration, expression, and growth.
+                        </p>
+                    </div>
                 </div>
-            </div>
             @endif
 
             <div class="about-cta">
@@ -708,39 +788,40 @@
                 </div>
 
                 @if($contact && $contact->content)
-                {!! $contact->content !!}
+                    {!! $contact->content !!}
                 @else
-                <h2 class="contact-title">get in touch!</h2>
+                    <h2 class="contact-title">get in touch!</h2>
 
-                <div class="contact-subtext">
-                    We’d love to hear from you! If you have questions, feedback, or need assistance,
-                    feel free to reach out using the details below.
-                </div>
+                    <div class="contact-subtext">
+                        We’d love to hear from you! If you have questions, feedback, or need assistance,
+                        feel free to reach out using the details below.
+                    </div>
 
-                <div class="contact-details">
-                    <div><b>Email:</b> support@postit.com</div>
-                    <div><b>Phone:</b> +63 912 345 6789</div>
+                    <div class="contact-details">
+                        <div><b>Email:</b> support@postit.com</div>
+                        <div><b>Phone:</b> +63 912 345 6789</div>
 
-                    <div class="contact-hours-title"><b>Office Hours:</b></div>
-                    <div>Monday – Friday</div>
-                    <div>9:00 AM – 5:00 PM</div>
-                </div>
+                        <div class="contact-hours-title"><b>Office Hours:</b></div>
+                        <div>Monday – Friday</div>
+                        <div>9:00 AM – 5:00 PM</div>
+                    </div>
 
-                <div class="contact-footer">
-                    Post <span class="orange">Smarter.</span>
-                    Manage <span class="navy">Better.</span>
-                    Publish <span class="green">Faster.</span>
-                </div>
+                    <div class="contact-footer">
+                        Post <span class="orange">Smarter.</span>
+                        Manage <span class="navy">Better.</span>
+                        Publish <span class="green">Faster.</span>
+                    </div>
                 @endif
             </div>
         </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="site-footer">
-        <p>© Post It. All rights reserved.</p>
-    </footer>
+@endif
+
+<!-- FOOTER -->
+<footer class="site-footer">
+    <p>© Post It. All rights reserved.</p>
+</footer>
 
 </body>
-
 </html>

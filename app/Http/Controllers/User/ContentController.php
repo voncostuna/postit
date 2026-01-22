@@ -51,7 +51,6 @@ class ContentController extends Controller
      */
     public function create()
     {
-        // categories dropdown (may be empty initially)
         $categories = Category::query()
             ->orderBy('name')
             ->get();
@@ -70,16 +69,14 @@ class ContentController extends Controller
             'status' => ['required', Rule::in(['draft', 'published'])],
             'excerpt' => ['nullable', 'string'],
             'content' => ['required', 'string'],
-            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'], // 2MB
+            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
-        // Generate unique-ish slug (safe for drafts too)
         $baseSlug = Str::slug($validated['title']);
         $slug = $baseSlug ?: Str::random(8);
 
         $imagePath = null;
         if ($request->hasFile('featured_image')) {
-            // stores to storage/app/public/articles/...
             $imagePath = $request->file('featured_image')->store('articles', 'public');
         }
 
@@ -104,7 +101,7 @@ class ContentController extends Controller
         ActivityLog::create([
             'user_id'     => Auth::id(),
             'action'      => 'create',
-            'model_type'  => 'Article',
+            'model_type'  => Article::class,
             'model_id'    => $article->id,
             'description' => 'Created content: ' . $article->title,
             'ip_address'  => $request->ip(),
@@ -164,19 +161,11 @@ class ContentController extends Controller
             'remove_image' => ['nullable', 'boolean'],
         ]);
 
-<<<<<<< HEAD
-=======
-        // Keep slug stable unless empty
->>>>>>> 7f8bd43ed6591617e8c3c2e79658bbca980013ed
         if (empty($article->slug)) {
             $article->slug = Str::slug($validated['title']) ?: Str::random(8);
         }
 
-        /**
-         * -------------------------------------------------
-         * IMAGE REMOVAL (explicit REMOVE IMAGE button)
-         * -------------------------------------------------
-         */
+        // Remove image
         if ($request->boolean('remove_image')) {
             if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
                 Storage::disk('public')->delete($article->featured_image);
@@ -184,16 +173,8 @@ class ContentController extends Controller
             $article->featured_image = null;
         }
 
-        /**
-         * -------------------------------------------------
-         * IMAGE REPLACEMENT (uploading a new one)
-         * -------------------------------------------------
-         */
+        // Replace image
         if ($request->hasFile('featured_image')) {
-<<<<<<< HEAD
-=======
-            // Remove old image if it exists
->>>>>>> 7f8bd43ed6591617e8c3c2e79658bbca980013ed
             if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
                 Storage::disk('public')->delete($article->featured_image);
             }
@@ -203,15 +184,7 @@ class ContentController extends Controller
                 ->store('articles', 'public');
         }
 
-<<<<<<< HEAD
         // publish rules
-=======
-        /**
-         * -------------------------------------------------
-         * PUBLISH / DRAFT LOGIC
-         * -------------------------------------------------
-         */
->>>>>>> 7f8bd43ed6591617e8c3c2e79658bbca980013ed
         if ($validated['status'] === 'published') {
             if (!$article->published_at) {
                 $article->published_at = now();
@@ -220,11 +193,7 @@ class ContentController extends Controller
             $article->published_at = null;
         }
 
-        /**
-         * -------------------------------------------------
-         * UPDATE CONTENT FIELDS
-         * -------------------------------------------------
-         */
+        // Update fields
         $article->title = $validated['title'];
         $article->content = $validated['content'];
         $article->excerpt = $validated['excerpt'] ?? null;
@@ -237,7 +206,7 @@ class ContentController extends Controller
         ActivityLog::create([
             'user_id'     => Auth::id(),
             'action'      => 'update',
-            'model_type'  => 'Article',
+            'model_type'  => Article::class,
             'model_id'    => $article->id,
             'description' => 'Updated content: ' . $article->title,
             'ip_address'  => $request->ip(),
@@ -259,7 +228,8 @@ class ContentController extends Controller
             ->where('author_id', Auth::id())
             ->findOrFail($id);
 
-        $title = $article->title; // keep title for log message after delete
+        $title = $article->title;
+        $articleId = $article->id;
 
         if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
             Storage::disk('public')->delete($article->featured_image);
@@ -271,8 +241,8 @@ class ContentController extends Controller
         ActivityLog::create([
             'user_id'     => Auth::id(),
             'action'      => 'delete',
-            'model_type'  => 'Article',
-            'model_id'    => (int) $id,
+            'model_type'  => Article::class,
+            'model_id'    => $articleId,
             'description' => 'Deleted content: ' . $title,
             'ip_address'  => $request->ip(),
             'user_agent'  => substr((string) $request->userAgent(), 0, 255),

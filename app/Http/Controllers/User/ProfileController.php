@@ -10,11 +10,11 @@ use App\Models\ActivityLog;
 
 class ProfileController extends Controller
 {
-    public function edit()
+    public function edit(Request $request)
     {
         $user = Auth::user();
 
-        // ✅ Only logs for the logged-in user, with pagination
+        // ✅ Only this user's logs, 5 per page (pagination)
         $activities = ActivityLog::query()
             ->where('user_id', $user->id)
             ->latest('created_at')
@@ -25,13 +25,10 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-        // NOTE: No actual profile update logic yet.
-        // When you add saving logic, keep this log after the save.
-
         ActivityLog::create([
             'user_id'     => Auth::id(),
             'action'      => 'update',
-            'model_type'  => 'User',
+            'model_type'  => \App\Models\User::class,
             'model_id'    => Auth::id(),
             'description' => 'Updated profile',
             'ip_address'  => $request->ip(),
@@ -47,12 +44,10 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         DB::transaction(function () use ($user, $request) {
-
-            // ✅ Log delete action BEFORE deleting the user
             ActivityLog::create([
                 'user_id'     => $user->id,
                 'action'      => 'delete',
-                'model_type'  => 'User',
+                'model_type'  => \App\Models\User::class,
                 'model_id'    => $user->id,
                 'description' => 'Deleted account',
                 'ip_address'  => $request->ip(),

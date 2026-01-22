@@ -18,7 +18,6 @@
     .admin-nav {
         font-family: "Albert Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
         height: 80px;
-        /* SAME HEIGHT AS LANDING */
         padding: 0 48px;
         border-bottom: 1px solid #eee;
         background: #fff;
@@ -28,10 +27,9 @@
         gap: 16px;
     }
 
-    /* Brand (LOGO like landing page) */
+    /* Brand */
     .admin-nav .brand img {
         height: 60px;
-        /* BIGGER logo */
         width: auto;
         display: block;
     }
@@ -74,11 +72,14 @@
         color: var(--postit-purple);
         background: #fff;
         text-decoration: none;
-        transition: background .2s ease;
+        transition: background .2s ease, color .2s ease, border-color .2s ease;
     }
 
+    .profile-pill.active,
     .profile-pill:hover {
         background: rgba(30, 15, 82, .05);
+        border-color: var(--postit-green);
+        color: var(--postit-green);
     }
 
     @media (max-width: 900px) {
@@ -109,41 +110,41 @@
     {{-- Center: Admin links --}}
     <div class="links">
         <a href="{{ route('admin.dashboard') }}"
-            class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+           class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             Dashboard
         </a>
 
         <a href="{{ route('admin.contents.index') }}"
-            class="{{ request()->routeIs('admin.contents.*') ? 'active' : '' }}">
+           class="{{ request()->routeIs('admin.contents.*') ? 'active' : '' }}">
             Contents
         </a>
 
         <a href="{{ route('admin.contents.create') }}"
-            class="{{ request()->routeIs('admin.contents.create') ? 'active' : '' }}">
+           class="{{ request()->routeIs('admin.contents.create') ? 'active' : '' }}">
             New Post
         </a>
 
         <a href="{{ route('admin.pages.index') }}"
-            class="{{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+           class="{{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
             Pages
         </a>
 
         <a href="{{ route('admin.users.index') }}"
-            class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+           class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
             User Management
         </a>
     </div>
 
     {{-- Right: Admin profile --}}
     <div class="right">
-        <a class="profile-pill"
-            href="{{ route('admin.dashboard') }}"
-            title="Admin Profile">
+        <a class="profile-pill {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}"
+           href="{{ route('admin.profile.edit') }}"
+           title="My Profile">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M20 21a8 8 0 1 0-16 0"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
-                    stroke="currentColor" stroke-width="2" />
+                      stroke="currentColor" stroke-width="2" />
             </svg>
         </a>
     </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Article;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -89,9 +90,20 @@ class ContentController extends Controller
             'featured_image' => $imagePath,
             'status' => $validated['status'],
             'category_id' => $validated['category_id'] ?? null,
-            // Admin authored if you want; otherwise set to current admin
             'author_id' => Auth::id(),
             'published_at' => $publishedAt,
+        ]);
+
+        // ✅ ACTIVITY LOG (ADMIN CREATE CONTENT)
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'admin_create_content',
+            'model_type'  => Article::class,
+            'model_id'    => $article->id,
+            'description' => 'Admin created content: ' . $article->title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
         ]);
 
         return redirect()
@@ -173,6 +185,18 @@ class ContentController extends Controller
 
         $article->save();
 
+        // ✅ ACTIVITY LOG (ADMIN UPDATE CONTENT)
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'admin_update_content',
+            'model_type'  => Article::class,
+            'model_id'    => $article->id,
+            'description' => 'Admin updated content: ' . $article->title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
+        ]);
+
         return redirect()
             ->route('admin.contents.show', $article->id)
             ->with('success', 'Content updated successfully.');
@@ -181,15 +205,30 @@ class ContentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $article = Article::query()->findOrFail($id);
+
+        $title = $article->title;
+        $articleId = $article->id;
 
         if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
             Storage::disk('public')->delete($article->featured_image);
         }
 
         $article->delete();
+
+        // ✅ ACTIVITY LOG (ADMIN DELETE CONTENT)
+        ActivityLog::create([
+            'user_id'     => Auth::id(),
+            'action'      => 'admin_delete_content',
+            'model_type'  => Article::class,
+            'model_id'    => $articleId,
+            'description' => 'Admin deleted content: ' . $title,
+            'ip_address'  => $request->ip(),
+            'user_agent'  => substr((string) $request->userAgent(), 0, 255),
+            'created_at'  => now(),
+        ]);
 
         return redirect()
             ->route('admin.contents.index')
