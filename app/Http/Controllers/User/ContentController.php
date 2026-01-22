@@ -38,9 +38,9 @@ class ContentController extends Controller
         }
 
         $articles = $query
-            ->orderByDesc('updated_at')  
+            ->orderByDesc('updated_at')
             ->paginate(10)
-            ->appends($request->query());  
+            ->appends($request->query());
 
         return view('user.contents.index', compact('articles'));
     }
@@ -154,27 +154,47 @@ class ContentController extends Controller
             'excerpt' => ['nullable', 'string'],
             'content' => ['required', 'string'],
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'remove_image' => ['nullable', 'boolean'],
         ]);
 
-        // If title changed, you may want to regenerate slug (optional).
-        // Here: keep existing slug stable unless empty.
+        // Keep slug stable unless empty
         if (empty($article->slug)) {
             $article->slug = Str::slug($validated['title']) ?: Str::random(8);
         }
 
-        // Handle image replacement
+        /**
+         * -------------------------------------------------
+         * IMAGE REMOVAL (explicit REMOVE IMAGE button)
+         * -------------------------------------------------
+         */
+        if ($request->boolean('remove_image')) {
+            if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
+                Storage::disk('public')->delete($article->featured_image);
+            }
+            $article->featured_image = null;
+        }
+
+        /**
+         * -------------------------------------------------
+         * IMAGE REPLACEMENT (uploading a new one)
+         * -------------------------------------------------
+         */
         if ($request->hasFile('featured_image')) {
-            // delete old image if exists
+            // Remove old image if it exists
             if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
                 Storage::disk('public')->delete($article->featured_image);
             }
 
-            $article->featured_image = $request->file('featured_image')->store('articles', 'public');
+            $article->featured_image = $request
+                ->file('featured_image')
+                ->store('articles', 'public');
         }
 
-        // Handle publish date rules:
-        // - If switching to published and published_at is null -> set now
-        // - If switching back to draft -> null published_at
+        /**
+         * -------------------------------------------------
+         * PUBLISH / DRAFT LOGIC
+         * -------------------------------------------------
+         */
         if ($validated['status'] === 'published') {
             if (!$article->published_at) {
                 $article->published_at = now();
@@ -183,6 +203,11 @@ class ContentController extends Controller
             $article->published_at = null;
         }
 
+        /**
+         * -------------------------------------------------
+         * UPDATE CONTENT FIELDS
+         * -------------------------------------------------
+         */
         $article->title = $validated['title'];
         $article->content = $validated['content'];
         $article->excerpt = $validated['excerpt'] ?? null;

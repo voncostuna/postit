@@ -538,7 +538,7 @@ $oldCategory = old('category_id', '');
                     <label class="ghost-pill" for="imageInput" style="cursor:pointer;">
                         UPLOAD IMAGE
                     </label>
-                    <input id="imageInput" class="file-input" type="file" name="image" accept="image/*" />
+                    <input id="imageInput" class="file-input" type="file" name="featured_image" accept="image/*" />
 
                     <span id="imageName" class="file-name" aria-live="polite">No file chosen</span>
 

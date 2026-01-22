@@ -2,29 +2,19 @@
 |--------------------------------------------------------------------------
 | EDIT USER CONTENT
 |--------------------------------------------------------------------------
-| Allows the user to edit their existing content.
+| Fix: image not showing because this blade was using $article->image.
+| Your DB column is featured_image, so we build the URL via Storage::url().
 |
-| UI: Same layout as show.blade.php (white page + green side curves +
-|     white outer card + dark purple content card), but with input fields
-|     and SAVE controls.
-|
-| Updates included:
-| - Switch status (draft/published) via pills (stored in hidden input status)
-| - Upload image with filename + preview
-| - REMOVE IMAGE option:
-|   - If existing image -> remove it
-|   - If newly selected image -> clear selection
-|   - Sends remove_image=1 to backend
-|
-| Notes:
-| - Expects $article (with status: 'draft' or 'published')
-| - Controller update should handle remove_image to null out the image field
+| Also fix: file input name must be featured_image (matches controller validation)
+| and remove_image should be handled by controller (optional note below).
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
 @php
+use Illuminate\Support\Facades\Storage;
+
 $authorName = optional($article->author)->name ?? (auth()->user()->name ?? 'You');
 $dateText = optional($article->updated_at)->format('F j, Y') ?? optional($article->created_at)->format('F j, Y');
 
@@ -34,13 +24,9 @@ $oldCategory = old('category_id', $article->category_id ?? '');
 
 $currentStatus = strtolower((string) old('status', $article->status ?? 'draft')); // draft|published
 
-// Image URL (adjust to your storage if needed)
-$imageUrl = null;
-if (!empty($article->image)) {
-$imageUrl = $article->image;
-// If needed:
-// $imageUrl = asset('storage/' . ltrim($article->image, '/'));
-}
+// ✅ Correct image field + correct URL
+$imagePath = $article->featured_image ?? null; // e.g. "articles/abc.jpg"
+$imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/articles/abc.jpg"
 @endphp
 
 <style>
@@ -417,6 +403,7 @@ $imageUrl = $article->image;
             <div class="image-area" id="imagePreviewBox">
                 @if($imageUrl)
                 <img id="imagePreview" src="{{ $imageUrl }}" alt="Post image">
+                <div class="image-placeholder" id="imagePlaceholder" style="display:none;">No image uploaded for this post.</div>
                 @else
                 <div class="image-placeholder" id="imagePlaceholder">No image uploaded for this post.</div>
                 <img id="imagePreview" src="" alt="Preview" style="display:none;">
@@ -435,10 +422,19 @@ $imageUrl = $article->image;
 
                 <div class="image-upload-row">
                     <label class="upload-btn" for="imageInputEdit" style="cursor:pointer;">UPLOAD IMAGE</label>
-                    <input id="imageInputEdit" class="file-input" type="file" name="image" accept="image/*" />
-                    <span id="imageNameEdit" class="file-name" aria-live="polite">No file chosen</span>
 
-                    <button type="button" id="removeImageBtn" class="upload-btn remove-btn" style="display:none;">
+                    {{-- ✅ Must match controller validation: featured_image --}}
+                    <input id="imageInputEdit" class="file-input" type="file" name="featured_image" accept="image/*" />
+
+                    <span id="imageNameEdit" class="file-name" aria-live="polite">
+                        {{ $imagePath ? basename($imagePath) : 'No file chosen' }}
+                    </span>
+
+                    <button
+                        type="button"
+                        id="removeImageBtn"
+                        class="upload-btn remove-btn"
+                        @if(!$imageUrl) style="display:none;" @endif>
                         REMOVE IMAGE
                     </button>
 
@@ -514,6 +510,7 @@ $imageUrl = $article->image;
             if (input) input.value = '';
             if (nameEl) nameEl.textContent = 'No file chosen';
 
+            // Clear preview (UI only). Backend removal is via remove_image=1.
             if (preview) preview.src = '';
             setPreviewVisible(false);
             setPlaceholderVisible(true);
@@ -537,7 +534,8 @@ $imageUrl = $article->image;
                     if (removeInput) removeInput.value = '0'; // replacing, not removing
                     if (removeBtn) removeBtn.style.display = 'inline-flex';
                 } else {
-                    resetImageUI(false);
+                    // if they cancel file dialog, keep current state (don't wipe existing)
+                    // so do nothing here
                 }
             });
         }

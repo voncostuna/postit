@@ -33,6 +33,8 @@ $imageUrl = $article->image;
 }
 @endphp
 
+@php use Illuminate\Support\Facades\Storage; @endphp
+
 <style>
     :root {
         --purple-3: #1a0648;
@@ -289,8 +291,13 @@ $imageUrl = $article->image;
         <div class="outer-card">
             {{-- Image area: show uploaded image if present, otherwise placeholder box --}}
             <div class="image-area">
-                @if($imageUrl)
-                <img src="{{ $imageUrl }}" alt="Post image">
+                @php
+                $img = $article->featured_image ?? null; // make sure you pass $article to the view
+                $imgUrl = $img ? Storage::url($img) : null; // /storage/articles/...
+                @endphp
+
+                @if($imgUrl)
+                <img src="{{ $imgUrl }}" alt="Post image">
                 @else
                 <div class="image-placeholder">No image uploaded for this post.</div>
                 @endif
