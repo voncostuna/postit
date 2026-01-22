@@ -1,20 +1,19 @@
 {{--
 |--------------------------------------------------------------------------
-| EDIT USER CONTENT
+| ADMIN EDIT CONTENT
 |--------------------------------------------------------------------------
-| Fix: image not showing because this blade was using $article->image.
-| Your DB column is featured_image, so we build the URL via Storage::url().
+| EXACTLY matches the USER edit.blade UI/behavior.
 |
-| Also fix: file input name must be featured_image (matches controller validation)
-| and remove_image should be handled by controller (optional note below).
+| Notes:
+| - Expects $article (status: draft|published, featured_image path in public disk)
+| - Expects $categories (optional) if you want to wire dropdown later
+| - Uses remove_image=1 to remove existing featured_image
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
 @php
-use Illuminate\Support\Facades\Storage;
-
 $authorName = optional($article->author)->name ?? (auth()->user()->name ?? 'You');
 $dateText = optional($article->updated_at)->format('F j, Y') ?? optional($article->created_at)->format('F j, Y');
 
@@ -24,8 +23,11 @@ $oldCategory = old('category_id', $article->category_id ?? '');
 
 $currentStatus = strtolower((string) old('status', $article->status ?? 'draft')); // draft|published
 
-$imagePath = $article->featured_image ?? null; // e.g. "articles/abc.jpg"
-$imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/articles/abc.jpg"
+// ✅ Featured image URL (public disk)
+$imageUrl = null;
+if (!empty($article->featured_image)) {
+$imageUrl = asset('storage/' . ltrim($article->featured_image, '/'));
+}
 @endphp
 
 <style>
@@ -57,6 +59,11 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
         overflow-x: hidden;
     }
 
+    main.container.py-4 {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
     .container,
     .container-fluid {
         padding-left: 0 !important;
@@ -85,7 +92,7 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
         width: 520px;
         height: 520px;
         border-radius: 50%;
-        background: linear-gradient(180deg, #10b600 0%, #0a8c00 55%, #066300 100%);
+        background: linear-gradient(145deg, #24055e 0%, #12002f 100%);
         z-index: 0;
     }
 
@@ -97,7 +104,7 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
         width: 520px;
         height: 520px;
         border-radius: 50%;
-        background: linear-gradient(180deg, #10b600 0%, #0a8c00 55%, #066300 100%);
+        background: linear-gradient(180deg, #20055f 0%, #15024b 100%);
         z-index: 0;
     }
 
@@ -402,14 +409,13 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
             <div class="image-area" id="imagePreviewBox">
                 @if($imageUrl)
                 <img id="imagePreview" src="{{ $imageUrl }}" alt="Post image">
-                <div class="image-placeholder" id="imagePlaceholder" style="display:none;">No image uploaded for this post.</div>
                 @else
                 <div class="image-placeholder" id="imagePlaceholder">No image uploaded for this post.</div>
                 <img id="imagePreview" src="" alt="Preview" style="display:none;">
                 @endif
             </div>
 
-            <form method="POST" action="{{ route('user.contents.update', $article->id) }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.contents.update', $article->id) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -421,13 +427,8 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
 
                 <div class="image-upload-row">
                     <label class="upload-btn" for="imageInputEdit" style="cursor:pointer;">UPLOAD IMAGE</label>
-
-                    {{-- Must match controller validation: featured_image --}}
                     <input id="imageInputEdit" class="file-input" type="file" name="featured_image" accept="image/*" />
-
-                    <span id="imageNameEdit" class="file-name" aria-live="polite">
-                        {{ $imagePath ? basename($imagePath) : 'No file chosen' }}
-                    </span>
+                    <span id="imageNameEdit" class="file-name" aria-live="polite">No file chosen</span>
 
                     <button
                         type="button"
@@ -470,7 +471,7 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
                     </div>
 
                     <div class="actions">
-                        <a class="cancel-link" href="{{ route('user.contents.index') }}">CANCEL</a>
+                        <a class="cancel-link" href="{{ route('admin.contents.index') }}">CANCEL</a>
                         <button class="save-btn" type="submit">SAVE</button>
                     </div>
                 </div>
@@ -490,11 +491,6 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
         const removeBtn = document.getElementById('removeImageBtn');
         const removeInput = document.getElementById('removeImageInput');
 
-        // If the article already has an image, show remove button
-        if (preview && preview.getAttribute('src') && preview.getAttribute('src').trim() !== '') {
-            if (removeBtn) removeBtn.style.display = 'inline-flex';
-        }
-
         function setPlaceholderVisible(visible) {
             if (!placeholder) return;
             placeholder.style.display = visible ? 'flex' : 'none';
@@ -509,7 +505,6 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
             if (input) input.value = '';
             if (nameEl) nameEl.textContent = 'No file chosen';
 
-            // Clear preview (UI only). Backend removal is via remove_image=1.
             if (preview) preview.src = '';
             setPreviewVisible(false);
             setPlaceholderVisible(true);
@@ -533,8 +528,7 @@ $imageUrl = $imagePath ? Storage::url($imagePath) : null; // e.g. "/storage/arti
                     if (removeInput) removeInput.value = '0'; // replacing, not removing
                     if (removeBtn) removeBtn.style.display = 'inline-flex';
                 } else {
-                    // if they cancel file dialog, keep current state (don't wipe existing)
-                    // so do nothing here
+                    resetImageUI(false);
                 }
             });
         }

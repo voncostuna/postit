@@ -73,6 +73,7 @@
             display: flex;
             gap: 44px;
             font-weight: 700;
+            flex-wrap: wrap;
         }
 
         .nav a {
@@ -570,9 +571,26 @@
         </div>
 
         <nav class="nav">
-            <a class="active" href="#">Home</a>
-            <a href="#about">About Us</a>
-            <a href="#contact">Contact</a>
+            <a class="active" href="{{ route('home') }}">Home</a>
+
+            @php
+            // We want About + Contact as in-page sections, everything else goes to /p/{slug}
+            $aboutSlug = 'about-us';
+            $contactSlug = 'contact';
+
+            // keep About/Contact first (if they exist) then render the rest
+            $nav = collect($navPages ?? []);
+            $aboutNav = $nav->firstWhere('slug', $aboutSlug);
+            $contactNav = $nav->firstWhere('slug', $contactSlug);
+            $otherNav = $nav->reject(fn($p) => in_array($p->slug, [$aboutSlug, $contactSlug]));
+            @endphp
+
+            <a href="#about">{{ $aboutNav?->title ?? 'About Us' }}</a>
+            <a href="#contact">{{ $contactNav?->title ?? 'Contact' }}</a>
+
+            @foreach($otherNav as $p)
+            <a href="{{ route('page.show', $p->slug) }}">{{ $p->title }}</a>
+            @endforeach
         </nav>
 
         <a href="{{ route('login') }}" class="login-btn">Login</a>
@@ -604,7 +622,7 @@
             </div>
 
             <div class="cta">
-                <a href="#">Get Started</a>
+                <a href="{{ route('register') }}">Get Started</a>
             </div>
         </div>
     </section>
@@ -618,6 +636,10 @@
                 <img src="{{ asset('assets/images/logo.svg') }}" alt="Post It!">
             </div>
 
+            {{-- If admin published "about-us", show DB content. Otherwise show fallback text. --}}
+            @if($about && $about->content)
+            {!! $about->content !!}
+            @else
             <div class="about-headings">
                 <div class="about-title">ABOUT US</div>
                 <div class="about-title right">OUR MISSION</div>
@@ -664,9 +686,10 @@
                     </p>
                 </div>
             </div>
+            @endif
 
             <div class="about-cta">
-                <a href="#" class="cta-btn">Get Started</a>
+                <a href="{{ route('register') }}" class="cta-btn">Get Started</a>
             </div>
         </div>
     </section>
@@ -684,6 +707,9 @@
                     <img src="{{ asset('assets/images/logo.svg') }}" alt="Post It!">
                 </div>
 
+                @if($contact && $contact->content)
+                {!! $contact->content !!}
+                @else
                 <h2 class="contact-title">get in touch!</h2>
 
                 <div class="contact-subtext">
@@ -705,6 +731,7 @@
                     Manage <span class="navy">Better.</span>
                     Publish <span class="green">Faster.</span>
                 </div>
+                @endif
             </div>
         </div>
     </section>

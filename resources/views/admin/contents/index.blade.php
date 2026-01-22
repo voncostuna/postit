@@ -1,13 +1,11 @@
 {{--
 |--------------------------------------------------------------------------
-| ADMIN PAGES LIST
+| ADMIN CONTENT LIST
 |--------------------------------------------------------------------------
-| UI matched to Admin Content index:
-| - Purple background accent on RIGHT side
-| - Title + subtitle LEFT aligned
-| - Add New Page button top-right
-| - Search + Status filter pills
-| - Table shell with pill headers + kebab menu + delete modal
+| Updates requested:
+| - Keep NEW POST button (top-right)
+| - Move bluish/purple background accent to the RIGHT side (instead of left)
+| - Title + subtitle must be LEFT aligned (on the left side)
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
@@ -68,7 +66,7 @@ $q = request('q', '');
     }
 
     /* Page canvas */
-    .pages-wrap {
+    .contents-wrap {
         position: relative;
         min-height: 100vh;
         width: 100%;
@@ -77,7 +75,7 @@ $q = request('q', '');
         background: #fff;
     }
 
-    .pages-wrap::before {
+    .contents-wrap::before {
         content: "";
         position: absolute;
         right: -180px;
@@ -95,7 +93,7 @@ $q = request('q', '');
         filter: drop-shadow(0 18px 40px rgba(0, 0, 0, .10));
     }
 
-    .pages-wrap::after {
+    .contents-wrap::after {
         content: "";
         position: absolute;
         right: -260px;
@@ -109,7 +107,7 @@ $q = request('q', '');
         opacity: .95;
     }
 
-    .pages-inner {
+    .contents-inner {
         position: relative;
         z-index: 1;
         min-height: calc(100vh - 32px);
@@ -146,11 +144,11 @@ $q = request('q', '');
         margin: 6px 0 0;
         font-size: 16px;
         font-weight: 700;
-        color: #0e8f01;
+        color: #3b0db6;
         opacity: .95;
     }
 
-    .new-page-btn {
+    .new-post-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -168,20 +166,7 @@ $q = request('q', '');
         margin-top: 6px;
         white-space: nowrap;
         line-height: 1;
-        min-width: 140px;
-    }
-
-    /* Flash */
-    .flash {
-        margin: 14px auto 0;
-        width: min(980px, calc(100% - 140px));
-        background: #e8fff1;
-        border: 1px solid #b8f1cc;
-        border-radius: 12px;
-        padding: 12px 14px;
-        font-weight: 800;
-        color: #0f5132;
-        box-shadow: 0 14px 30px rgba(0, 0, 0, .10);
+        min-width: 110px;
     }
 
     /* Search + filters bar */
@@ -404,7 +389,7 @@ $q = request('q', '');
         border: 1px solid rgba(0, 0, 0, .12);
         border-radius: 12px;
         box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
-        min-width: 190px;
+        min-width: 170px;
         overflow: hidden;
         z-index: 10;
     }
@@ -517,10 +502,6 @@ $q = request('q', '');
             padding: 0 16px;
             height: 32px;
         }
-
-        .title-block {
-            margin-left: 0;
-        }
     }
 
     @media (max-width: 680px) {
@@ -536,23 +517,21 @@ $q = request('q', '');
     }
 </style>
 
-<div class="pages-wrap">
-    <div class="pages-inner">
+<div class="contents-wrap">
+    <div class="contents-inner">
         <div class="top-row">
+            {{-- Left title/subtitle --}}
             <div class="title-block">
-                <h1>Pages</h1>
-                <p>Manage static pages for your website!</p>
+                <h1>Contents</h1>
+                <p>Browse all your published articles and blog posts in one place.</p>
             </div>
 
-            <a class="new-page-btn" href="{{ route('admin.pages.create') }}">ADD NEW PAGE</a>
+            {{-- NEW POST on right --}}
+            <a class="new-post-btn" href="{{ route('admin.contents.create') }}">NEW POST</a>
         </div>
 
-        @if(session('success'))
-        <div class="flash">{{ session('success') }}</div>
-        @endif
-
         {{-- Search + Filters --}}
-        <form class="search-row" method="GET" action="{{ route('admin.pages.index') }}">
+        <form class="search-row" method="GET" action="{{ route('admin.contents.index') }}">
             <div class="search-box">
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M10.5 18.5a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" stroke="#111" stroke-width="2" />
@@ -563,22 +542,22 @@ $q = request('q', '');
                     type="text"
                     name="q"
                     value="{{ $q }}"
-                    placeholder="Search pages..." />
+                    placeholder="Search content..." />
             </div>
 
             <div class="filters">
                 <a class="filter-pill {{ $status === 'all' ? 'active' : '' }}"
-                    href="{{ route('admin.pages.index', array_filter(['q' => $q, 'status' => 'all'])) }}">
+                    href="{{ route('admin.contents.index', array_filter(['q' => $q, 'status' => 'all'])) }}">
                     ALL
                 </a>
 
                 <a class="filter-pill {{ $status === 'draft' ? 'active' : '' }}"
-                    href="{{ route('admin.pages.index', array_filter(['q' => $q, 'status' => 'draft'])) }}">
+                    href="{{ route('admin.contents.index', array_filter(['q' => $q, 'status' => 'draft'])) }}">
                     DRAFT
                 </a>
 
                 <a class="filter-pill {{ $status === 'published' ? 'active' : '' }}"
-                    href="{{ route('admin.pages.index', array_filter(['q' => $q, 'status' => 'published'])) }}">
+                    href="{{ route('admin.contents.index', array_filter(['q' => $q, 'status' => 'published'])) }}">
                     PUBLISHED
                 </a>
             </div>
@@ -589,37 +568,38 @@ $q = request('q', '');
                 <div class="head-pills">
                     <div class="head-pill">TITLE</div>
                     <div class="head-pill">AUTHOR</div>
-                    <div class="head-pill">STATUS</div>
+                    <div class="head-pill">CATEGORIES</div>
                     <div class="head-pill">UPDATED</div>
                     <div></div>
                 </div>
 
                 <div class="rows">
-                    @forelse($pages as $page)
+                    @forelse($articles as $article)
                     @php
-                    $author = optional($page->author)->name ?? '—';
-                    $updated = optional($page->updated_at)->format('F j, Y') ?? '—';
+                    $author = optional($article->author)->name ?? '—';
+                    $category = optional($article->category)->name ?? '—';
                     @endphp
 
                     <div class="row-card"
-                        data-title="{{ strtolower($page->title ?? '') }}"
+                        data-title="{{ strtolower($article->title ?? '') }}"
                         data-author="{{ strtolower($author) }}"
-                        data-status="{{ strtolower($page->status ?? '') }}">
+                        data-category="{{ strtolower($category) }}"
+                        data-status="{{ strtolower($article->status ?? '') }}">
 
-                        <div class="cell" title="{{ $page->title }}">
-                            {{ $page->title }}
+                        <div class="cell" title="{{ $article->title }}">
+                            {{ $article->title }}
                         </div>
 
                         <div class="cell muted" title="{{ $author }}">
                             {{ $author }}
                         </div>
 
-                        <div class="cell" title="{{ ucfirst($page->status) }}">
-                            {{ ucfirst($page->status) }}
+                        <div class="cell" title="{{ $category }}">
+                            {{ $category }}
                         </div>
 
                         <div class="cell muted">
-                            {{ $updated }}
+                            {{ optional($article->updated_at)->format('F j, Y') }}
                         </div>
 
                         <div class="kebab">
@@ -631,17 +611,13 @@ $q = request('q', '');
                                 </summary>
 
                                 <div class="menu">
-                                    {{-- Public view --}}
-                                    <a href="{{ route('page.show', $page->slug) }}" target="_blank">View</a>
+                                    <a href="{{ route('admin.contents.show', $article->id) }}">View</a>
+                                    <a href="{{ route('admin.contents.edit', $article->id) }}">Edit</a>
 
-                                    {{-- Admin edit --}}
-                                    <a href="{{ route('admin.pages.edit', $page->id) }}">Edit</a>
-
-                                    {{-- Delete --}}
                                     <button type="button"
                                         class="openDeleteModalBtn"
-                                        data-action="{{ route('admin.pages.destroy', $page->id) }}"
-                                        data-title="{{ $page->title }}">
+                                        data-action="{{ route('admin.contents.destroy', $article->id) }}"
+                                        data-title="{{ $article->title }}">
                                         Delete
                                     </button>
                                 </div>
@@ -650,14 +626,14 @@ $q = request('q', '');
                     </div>
                     @empty
                     <div class="empty">
-                        No pages found. Click <b>ADD NEW PAGE</b> to create one.
+                        No contents found. Click <b>NEW POST</b> to create your first one.
                     </div>
                     @endforelse
                 </div>
 
-                @if(method_exists($pages, 'links'))
+                @if(method_exists($articles, 'links'))
                 <div style="margin-top:14px;">
-                    {{ $pages->appends(request()->query())->links() }}
+                    {{ $articles->appends(request()->query())->links() }}
                 </div>
                 @endif
             </div>
@@ -668,7 +644,7 @@ $q = request('q', '');
 {{-- DELETE MODAL --}}
 <div id="deleteModal" class="modal-backdrop" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
-        <h3 id="deleteModalTitle" class="modal-title">Delete page?</h3>
+        <h3 id="deleteModalTitle" class="modal-title">Delete content?</h3>
         <p class="modal-text" id="deleteModalText">This action can’t be undone.</p>
 
         <div class="modal-actions">
@@ -685,7 +661,7 @@ $q = request('q', '');
 
 <script>
     (function() {
-        // Client-side filtering (optional; works even without controller query logic)
+        // Client-side filtering (optional)
         const input = document.querySelector('.search-input');
         const rows = Array.from(document.querySelectorAll('.row-card'));
         if (input && rows.length) {
@@ -694,8 +670,8 @@ $q = request('q', '');
                 rows.forEach(row => {
                     const title = row.dataset.title || '';
                     const author = row.dataset.author || '';
-                    const status = row.dataset.status || '';
-                    const match = !q || title.includes(q) || author.includes(q) || status.includes(q);
+                    const category = row.dataset.category || '';
+                    const match = !q || title.includes(q) || author.includes(q) || category.includes(q);
                     row.style.display = match ? '' : 'none';
                 });
             }
@@ -725,7 +701,7 @@ $q = request('q', '');
 
         document.querySelectorAll('.openDeleteModalBtn').forEach(btn => {
             btn.addEventListener('click', function() {
-                openModal(this.dataset.action, this.dataset.title || 'this page');
+                openModal(this.dataset.action, this.dataset.title || 'this content');
             });
         });
 
