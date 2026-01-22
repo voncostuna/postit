@@ -1,47 +1,37 @@
 {{--
 |--------------------------------------------------------------------------
-| VIEW USER CONTENT
+| ADMIN SHOW CONTENT
 |--------------------------------------------------------------------------
-| Displays a single content item created by the user.
-|
-| UI: Matches provided mock (white page, green side curves, author + date,
-|     dark purple content card).
+| EXACTLY matches the USER show.blade UI (same layout/styles/patterns)
 |
 | Notes:
-| - Like/Unlike buttons intentionally NOT included.
-| - Includes image placeholder area if an image exists (or shows fallback box).
+| - Expects $article (with author relation optional)
+| - Uses featured_image (stored in public disk) like your user contents
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
 
 @section('content')
 @php
-// Expecting: $article (passed from controller)
-$authorName = optional($article->author)->name ?? (auth()->user()->name ?? 'You');
-$dateText = optional($article->created_at)->format('F j, Y') ?? '';
+$authorName = optional($article->author)->name ?? 'Unknown';
+$dateText = optional($article->updated_at)->format('F j, Y')
+?? optional($article->created_at)->format('F j, Y')
+?? '';
+
 $title = $article->title ?? '';
 $content = $article->content ?? '';
 
-// Adjust these depending on your schema/storage:
-// If you store full URL in $article->image, it'll work as-is.
-// If you store path like "uploads/xyz.jpg", use asset('storage/'.$article->image)
+// ✅ Featured image (matches your user setup)
 $imageUrl = null;
-if (!empty($article->image)) {
-$imageUrl = $article->image;
-// If needed, switch to:
-// $imageUrl = asset('storage/' . ltrim($article->image, '/'));
+if (!empty($article->featured_image)) {
+$imageUrl = asset('storage/' . ltrim($article->featured_image, '/'));
 }
 @endphp
-
-@php use Illuminate\Support\Facades\Storage; @endphp
 
 <style>
     :root {
         --purple-3: #1a0648;
         --ink: #121212;
-        --muted: #6d6d6d;
-        --card: #ffffff;
-        --line: #e9e9ee;
         --green: #0e8f01;
     }
 
@@ -66,6 +56,11 @@ $imageUrl = $article->image;
         overflow-x: hidden;
     }
 
+    main.container.py-4 {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
     .container,
     .container-fluid {
         padding-left: 0 !important;
@@ -85,7 +80,7 @@ $imageUrl = $article->image;
         background: #fff;
     }
 
-    /* Green side curves (like mock) */
+    /* Green side curves */
     .show-wrap::before {
         content: "";
         position: absolute;
@@ -94,7 +89,7 @@ $imageUrl = $article->image;
         width: 520px;
         height: 520px;
         border-radius: 50%;
-        background: linear-gradient(180deg, #10b600 0%, #0a8c00 55%, #066300 100%);
+        background: linear-gradient(180deg, #20055f 0%, #15024b 100%);
         z-index: 0;
     }
 
@@ -106,7 +101,7 @@ $imageUrl = $article->image;
         width: 520px;
         height: 520px;
         border-radius: 50%;
-        background: linear-gradient(180deg, #10b600 0%, #0a8c00 55%, #066300 100%);
+        background: linear-gradient(145deg, #24055e 0%, #12002f 100%);
         z-index: 0;
     }
 
@@ -115,6 +110,26 @@ $imageUrl = $article->image;
         z-index: 1;
         width: min(980px, calc(100% - 120px));
         margin: 0 auto;
+    }
+
+    /* Back row */
+    .back-row {
+        margin-bottom: 10px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: #2a2a2a;
+        font-weight: 800;
+        font-size: 14px;
+    }
+
+    .back-btn svg {
+        width: 20px;
+        height: 20px;
     }
 
     /* Top meta (author/date) */
@@ -157,7 +172,7 @@ $imageUrl = $article->image;
         padding: 14px 16px 18px;
     }
 
-    /* Optional image area (top, inside outer card) */
+    /* Image area */
     .image-area {
         width: 100%;
         border-radius: 10px;
@@ -193,54 +208,23 @@ $imageUrl = $article->image;
         border-radius: 8px;
         padding: 18px 18px 18px;
         color: #fff;
+        margin-top: 10px;
         box-shadow: 0 10px 22px rgba(0, 0, 0, .18);
     }
 
     .content-title {
-        font-size: 16px;
-        font-weight: 800;
+        font-size: 20px;
+        font-weight: 900;
         margin: 0 0 10px;
-        color: #fff;
+        line-height: 1.25;
     }
 
     .content-body {
-        font-size: 14px;
-        font-weight: 500;
-        line-height: 1.6;
-        color: rgba(255, 255, 255, .92);
-        white-space: pre-wrap;
-        /* preserves newlines */
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.7;
         margin: 0;
-    }
-
-    .back-row {
-        margin: 0 0 10px;
-    }
-
-    .back-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        height: 34px;
-        padding: 0 18px;
-        border-radius: 999px;
-        background: #fff;
-        border: 1px solid rgba(0, 0, 0, .15);
-        color: #2a2a2a;
-        font-weight: 800;
-        font-size: 13px;
-        text-transform: uppercase;
-        text-decoration: none;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, .10);
-    }
-
-    .back-btn:hover {
-        transform: translateY(-1px);
-    }
-
-    .back-btn svg {
-        width: 16px;
-        height: 16px;
+        white-space: pre-wrap;
     }
 
     @media (max-width: 900px) {
@@ -257,10 +241,6 @@ $imageUrl = $article->image;
         .image-area {
             height: 180px;
         }
-
-        .content-body {
-            font-size: 14px;
-        }
     }
 </style>
 
@@ -268,7 +248,7 @@ $imageUrl = $article->image;
     <div class="show-inner">
 
         <div class="back-row">
-            <a href="{{ route('user.contents.index') }}" class="back-btn">
+            <a href="{{ route('admin.contents.index') }}" class="back-btn">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M15 18l-6-6 6-6" stroke="#2a2a2a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
@@ -291,13 +271,8 @@ $imageUrl = $article->image;
         <div class="outer-card">
             {{-- Image area: show uploaded image if present, otherwise placeholder box --}}
             <div class="image-area">
-                @php
-                $img = $article->featured_image ?? null; // make sure you pass $article to the view
-                $imgUrl = $img ? Storage::url($img) : null; // /storage/articles/...
-                @endphp
-
-                @if($imgUrl)
-                <img src="{{ $imgUrl }}" alt="Post image">
+                @if($imageUrl)
+                <img src="{{ $imageUrl }}" alt="Post image">
                 @else
                 <div class="image-placeholder">No image uploaded for this post.</div>
                 @endif

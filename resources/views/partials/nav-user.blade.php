@@ -62,7 +62,7 @@
     .user-nav .links a{
         text-decoration:none;
         color: var(--postit-purple);
-        font-size: 18px;   /* ✅ bigger like you asked */
+        font-size: 20px;   
         transition: color .15s ease, transform .15s ease;
     }
     .user-nav .links a:hover{

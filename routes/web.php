@@ -17,13 +17,43 @@ use App\Http\Controllers\Admin\ContentController as AdminContentController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Admin\ActivityLogController as AdminActivityLogController;
 
+use App\Models\Page;
+
 /*
 |--------------------------------------------------------------------------
 | PUBLIC / GUEST
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', fn() => view('landing'))->name('home');
+// Landing page pulls content from DB (published only) + dynamic nav tabs
+Route::get('/', function () {
+    $about = Page::published()->where('slug', 'about-us')->first();
+    $contact = Page::published()->where('slug', 'contact')->first();
+
+    // Dynamic nav tabs: all published pages (you can filter/order later)
+    $navPages = Page::published()
+        ->orderBy('title')
+        ->get(['title', 'slug']);
+
+    return view('landing', compact('about', 'contact', 'navPages'));
+})->name('home');
+
+// Public route for admin-created tabs/pages (e.g. /p/privacy-policy)
+Route::get('/p/{slug}', function (string $slug) {
+
+    // If you prefer About/Contact as landing anchors, redirect these slugs
+    if ($slug === 'about-us') {
+        return redirect()->route('home') . '#about';
+    }
+
+    if ($slug === 'contact') {
+        return redirect()->route('home') . '#contact';
+    }
+
+    $page = Page::published()->where('slug', $slug)->firstOrFail();
+
+    return view('page', compact('page'));
+})->name('page.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +83,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role.user'])->prefix('user')->as('user.')->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'user'])->name('dashboard');
 
     // Contents (CRUD own)
@@ -64,8 +95,7 @@ Route::middleware(['auth', 'role.user'])->prefix('user')->as('user.')->group(fun
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy'); 
-
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 /*
@@ -74,6 +104,7 @@ Route::middleware(['auth', 'role.user'])->prefix('user')->as('user.')->group(fun
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role.admin'])->prefix('admin')->as('admin.')->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
     Route::resource('users', AdminUserController::class);
@@ -92,6 +123,7 @@ Route::middleware(['auth', 'role.admin'])->prefix('admin')->as('admin.')->group(
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
+
     if (!Auth::check()) {
         return redirect()->route('login');
     }

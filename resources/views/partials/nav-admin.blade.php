@@ -10,78 +10,91 @@
 <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
-    :root{
-        --postit-green:#0B7A0B;
-        --postit-purple:#1E0F52;
+    :root {
+        --postit-green: #0B7A0B;
+        --postit-purple: #1E0F52;
     }
 
-    .admin-nav{
-        font-family:"Albert Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        height: 80px; /* SAME HEIGHT AS LANDING */
+    .admin-nav {
+        font-family: "Albert Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        height: 80px;
+        /* SAME HEIGHT AS LANDING */
         padding: 0 48px;
         border-bottom: 1px solid #eee;
-        background:#fff;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         gap: 16px;
     }
 
     /* Brand (LOGO like landing page) */
-    .admin-nav .brand img{
-        height: 60px; /* BIGGER logo */
+    .admin-nav .brand img {
+        height: 60px;
+        /* BIGGER logo */
         width: auto;
-        display:block;
+        display: block;
     }
 
     /* Center links */
-    .admin-nav .links{
-        display:flex;
-        align-items:center;
-        gap:44px;
+    .admin-nav .links {
+        display: flex;
+        align-items: center;
+        gap: 44px;
         font-weight: 800;
     }
-    .admin-nav .links a{
-        text-decoration:none;
+
+    .admin-nav .links a {
+        text-decoration: none;
         color: var(--postit-purple);
-        font-size: 16px;
+        font-size: 20px;
         transition: color .2s ease;
     }
+
     .admin-nav .links a.active,
-    .admin-nav .links a:hover{
+    .admin-nav .links a:hover {
         color: var(--postit-green);
     }
 
     /* Right profile icon */
-    .admin-nav .right{
-        display:flex;
-        align-items:center;
+    .admin-nav .right {
+        display: flex;
+        align-items: center;
         gap: 14px;
     }
 
-    .profile-pill{
-        width:38px;
-        height:38px;
-        border-radius:999px;
-        border:2px solid var(--postit-purple);
-        display:flex;
-        align-items:center;
-        justify-content:center;
+    .profile-pill {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        border: 2px solid var(--postit-purple);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: var(--postit-purple);
-        background:#fff;
-        text-decoration:none;
+        background: #fff;
+        text-decoration: none;
         transition: background .2s ease;
     }
-    .profile-pill:hover{
-        background: rgba(30,15,82,.05);
+
+    .profile-pill:hover {
+        background: rgba(30, 15, 82, .05);
     }
 
-    @media (max-width: 900px){
-        .admin-nav{ padding: 0 24px; }
-        .admin-nav .links{ gap: 26px; }
+    @media (max-width: 900px) {
+        .admin-nav {
+            padding: 0 24px;
+        }
+
+        .admin-nav .links {
+            gap: 26px;
+        }
     }
-    @media (max-width: 768px){
-        .admin-nav .links{ display:none; }
+
+    @media (max-width: 768px) {
+        .admin-nav .links {
+            display: none;
+        }
     }
 </style>
 
@@ -96,41 +109,41 @@
     {{-- Center: Admin links --}}
     <div class="links">
         <a href="{{ route('admin.dashboard') }}"
-           class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             Dashboard
         </a>
 
         <a href="{{ route('admin.contents.index') }}"
-           class="{{ request()->routeIs('admin.contents.*') ? 'active' : '' }}">
+            class="{{ request()->routeIs('admin.contents.*') ? 'active' : '' }}">
             Contents
         </a>
 
         <a href="{{ route('admin.contents.create') }}"
-           class="{{ request()->routeIs('admin.contents.create') ? 'active' : '' }}">
+            class="{{ request()->routeIs('admin.contents.create') ? 'active' : '' }}">
             New Post
         </a>
 
         <a href="{{ route('admin.pages.index') }}"
-           class="{{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+            class="{{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
             Pages
         </a>
 
-        <a href="{{ route('admin.activity-logs.index') }}"
-           class="{{ request()->routeIs('admin.activity-logs.*') ? 'active' : '' }}">
-            Activity Log
+        <a href="{{ route('admin.users.index') }}"
+            class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+            User Management
         </a>
     </div>
 
     {{-- Right: Admin profile --}}
     <div class="right">
         <a class="profile-pill"
-           href="{{ route('admin.dashboard') }}"
-           title="Admin Profile">
+            href="{{ route('admin.dashboard') }}"
+            title="Admin Profile">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M20 21a8 8 0 1 0-16 0"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
-                      stroke="currentColor" stroke-width="2"/>
+                    stroke="currentColor" stroke-width="2" />
             </svg>
         </a>
     </div>

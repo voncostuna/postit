@@ -161,22 +161,57 @@ class ContentController extends Controller
             'excerpt' => ['nullable', 'string'],
             'content' => ['required', 'string'],
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'remove_image' => ['nullable', 'boolean'],
         ]);
 
+<<<<<<< HEAD
+=======
+        // Keep slug stable unless empty
+>>>>>>> 7f8bd43ed6591617e8c3c2e79658bbca980013ed
         if (empty($article->slug)) {
             $article->slug = Str::slug($validated['title']) ?: Str::random(8);
         }
 
-        // Handle image replacement
+        /**
+         * -------------------------------------------------
+         * IMAGE REMOVAL (explicit REMOVE IMAGE button)
+         * -------------------------------------------------
+         */
+        if ($request->boolean('remove_image')) {
+            if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
+                Storage::disk('public')->delete($article->featured_image);
+            }
+            $article->featured_image = null;
+        }
+
+        /**
+         * -------------------------------------------------
+         * IMAGE REPLACEMENT (uploading a new one)
+         * -------------------------------------------------
+         */
         if ($request->hasFile('featured_image')) {
+<<<<<<< HEAD
+=======
+            // Remove old image if it exists
+>>>>>>> 7f8bd43ed6591617e8c3c2e79658bbca980013ed
             if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
                 Storage::disk('public')->delete($article->featured_image);
             }
 
-            $article->featured_image = $request->file('featured_image')->store('articles', 'public');
+            $article->featured_image = $request
+                ->file('featured_image')
+                ->store('articles', 'public');
         }
 
+<<<<<<< HEAD
         // publish rules
+=======
+        /**
+         * -------------------------------------------------
+         * PUBLISH / DRAFT LOGIC
+         * -------------------------------------------------
+         */
+>>>>>>> 7f8bd43ed6591617e8c3c2e79658bbca980013ed
         if ($validated['status'] === 'published') {
             if (!$article->published_at) {
                 $article->published_at = now();
@@ -185,6 +220,11 @@ class ContentController extends Controller
             $article->published_at = null;
         }
 
+        /**
+         * -------------------------------------------------
+         * UPDATE CONTENT FIELDS
+         * -------------------------------------------------
+         */
         $article->title = $validated['title'];
         $article->content = $validated['content'];
         $article->excerpt = $validated['excerpt'] ?? null;

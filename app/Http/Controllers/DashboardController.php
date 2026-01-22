@@ -28,40 +28,25 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        // ✅ REAL notifications: latest published posts by OTHER users
-        $notifications = Article::with('author')
+        // FEEDS: ALL published posts by ALL users (including the logged-in user)
+        $feeds = Article::with('author')
             ->where('status', 'published')
-            ->where('author_id', '!=', $userId)
             ->orderByDesc('created_at')
-            ->limit(5)
-            ->get()
-            ->map(function ($article) {
-                $name = $article->author->name ?? 'Someone';
-
-                $initials = collect(explode(' ', trim($name)))
-                    ->filter()
-                    ->map(fn($part) => strtoupper(substr($part, 0, 1)))
-                    ->take(2)
-                    ->implode('');
-
-                return [
-                    'initials' => $initials ?: 'NA',
-                    'text' => $name . ' posted: "' . ($article->title ?? 'Untitled') . '"',
-                ];
-            });
+            ->limit(10)
+            ->get();
 
         return view('user.dashboard', compact(
             'totalPost',
             'drafts',
             'published',
             'statusBreakdown',
-            'notifications'
+            'feeds'
         ));
     }
+
 
     public function admin()
     {
         return view('admin.dashboard');
     }
 }
-

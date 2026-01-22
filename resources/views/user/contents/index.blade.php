@@ -10,6 +10,7 @@
 | Updates requested:
 | - Search input + filter buttons BIGGER
 | - Table wider (landscape)
+| - Replace delete confirm() with a modal
 |--------------------------------------------------------------------------
 --}}
 @extends('layouts.app')
@@ -174,7 +175,6 @@ $q = request('q', '');
     .search-row {
         margin: 18px auto 22px;
         width: min(980px, calc(100% - 140px));
-        /* wider, but still centered */
         background: #fff;
         border-radius: 12px;
         padding: 14px 16px;
@@ -192,9 +192,7 @@ $q = request('q', '');
         gap: 12px;
         flex: 1;
         height: 54px;
-        /* bigger */
         padding: 0 14px;
-        /* bigger */
         background: #fff;
         border-radius: 12px;
         border: 1px solid rgba(0, 0, 0, .14);
@@ -202,9 +200,7 @@ $q = request('q', '');
 
     .search-icon {
         width: 22px;
-        /* bigger */
         height: 22px;
-        /* bigger */
         opacity: .85;
         flex: 0 0 auto;
     }
@@ -214,7 +210,6 @@ $q = request('q', '');
         outline: none;
         width: 100%;
         font-size: 16px;
-        /* bigger */
         font-weight: 600;
         color: var(--ink);
         background: transparent;
@@ -266,7 +261,6 @@ $q = request('q', '');
     .table-shell {
         margin: 22px auto 0;
         width: min(1100px, calc(100% - 160px));
-        /* wider */
         background: linear-gradient(180deg, #20055f 0%, #15024b 100%);
         border-radius: 14px;
         padding: 22px 22px 26px;
@@ -284,13 +278,11 @@ $q = request('q', '');
         display: flex;
         flex-direction: column;
         min-height: 420px;
-        /* helps “landscape feel” even when empty */
     }
 
     .head-pills {
         display: grid;
         grid-template-columns: 1.4fr 1fr 1fr 1fr 28px;
-        /* roomier */
         gap: 14px;
         align-items: center;
         padding: 0 10px 12px;
@@ -298,7 +290,6 @@ $q = request('q', '');
 
     .head-pill {
         height: 28px;
-        /* bigger */
         border-radius: 10px;
         background: var(--purple-3);
         color: #fff;
@@ -306,7 +297,6 @@ $q = request('q', '');
         align-items: center;
         justify-content: center;
         font-size: 13px;
-        /* bigger */
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: .2px;
@@ -329,7 +319,6 @@ $q = request('q', '');
         border: 1px solid rgba(0, 0, 0, .12);
         border-radius: 12px;
         padding: 14px 14px;
-        /* bigger */
         background: #fff;
         box-shadow: 0 2px 0 rgba(0, 0, 0, .03);
         text-align: center;
@@ -337,12 +326,12 @@ $q = request('q', '');
 
     .cell {
         font-size: 16px;
-        /* bigger */
         font-weight: 700;
         color: var(--ink);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-align: left;
     }
 
     .cell.muted {
@@ -416,7 +405,6 @@ $q = request('q', '');
         text-align: left;
         padding: 12px 14px;
         font-size: 15px;
-        /* bigger */
         font-weight: 800;
         color: var(--ink);
         background: #fff;
@@ -439,7 +427,64 @@ $q = request('q', '');
         font-size: 16px;
     }
 
-    /* Responsive: keep it usable on smaller screens */
+    /* ===== Delete Modal ===== */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background: rgba(0, 0, 0, .45);
+        z-index: 9999;
+        padding: 16px;
+    }
+
+    .modal-backdrop.show {
+        display: grid;
+    }
+
+    .modal-card {
+        width: min(520px, 100%);
+        background: #fff;
+        border-radius: 18px;
+        padding: 18px 18px 16px;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, .22);
+        border: 1px solid rgba(0, 0, 0, .10);
+    }
+
+    .modal-title {
+        margin: 0 0 8px;
+        font-size: 18px;
+        font-weight: 900;
+        color: var(--ink);
+    }
+
+    .modal-text {
+        margin: 0 0 14px;
+        opacity: .85;
+        line-height: 1.35;
+        font-weight: 700;
+        color: #2d2d2d;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    /* red pill variant matching your UI pills */
+    .danger-pill {
+        background: #e53935;
+        color: #fff;
+        border: none;
+    }
+
+    .danger-pill:hover {
+        filter: brightness(0.95);
+        transform: translateY(-1px);
+    }
+
+    /* Responsive */
     @media (max-width: 900px) {
 
         .search-row,
@@ -561,11 +606,11 @@ $q = request('q', '');
                                     <a href="{{ route('user.contents.show', $article->id) }}">View</a>
                                     <a href="{{ route('user.contents.edit', $article->id) }}">Edit</a>
 
-                                    <form method="POST" action="{{ route('user.contents.destroy', $article->id) }}"
-                                        onsubmit="return confirm('Delete this content?');">
+                                    {{-- Delete button opens modal (no confirm()) --}}
+                                    <form method="POST" action="{{ route('user.contents.destroy', $article->id) }}" class="js-delete-form">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit">Delete</button>
+                                        <button type="button" class="js-open-delete">Delete</button>
                                     </form>
                                 </div>
                             </details>
@@ -588,14 +633,33 @@ $q = request('q', '');
     </div>
 </div>
 
+{{-- Delete Confirmation Modal --}}
+<div id="deleteModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+        <h3 id="deleteModalTitle" class="modal-title">Delete content?</h3>
+        <p class="modal-text" id="deleteModalText">This action can’t be undone.</p>
+
+        <div class="modal-actions">
+            <button type="button" class="filter-pill" id="cancelDeleteBtn" style="background: var(--orange);">
+                Cancel
+            </button>
+
+            <button type="button" class="filter-pill danger-pill" id="confirmDeleteBtn">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     (function() {
+        // ===== Search filter =====
         const input = document.querySelector('.search-input');
         const rows = Array.from(document.querySelectorAll('.row-card'));
 
-        if (!input || rows.length === 0) return;
-
         function filterRows() {
+            if (!input || rows.length === 0) return;
+
             const q = (input.value || '').trim().toLowerCase();
 
             rows.forEach(row => {
@@ -612,7 +676,81 @@ $q = request('q', '');
             });
         }
 
-        input.addEventListener('input', filterRows);
+        if (input) input.addEventListener('input', filterRows);
+
+        // ===== Delete modal =====
+        const modal = document.getElementById('deleteModal');
+        const cancelBtn = document.getElementById('cancelDeleteBtn');
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        const modalText = document.getElementById('deleteModalText');
+
+        let activeForm = null;
+
+        function openModal(form, title) {
+            activeForm = form;
+
+            // Optional: show which title is being deleted
+            if (modalText) {
+                modalText.textContent = title ?
+                    `Delete "${title}"? This action can’t be undone.` :
+                    `This action can’t be undone.`;
+            }
+
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+
+            // close any open <details> menus for nicer UI
+            document.querySelectorAll('.kebab details[open]').forEach(d => d.removeAttribute('open'));
+
+            cancelBtn && cancelBtn.focus();
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            activeForm = null;
+        }
+
+        // Open modal on delete click
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-open-delete');
+            if (!btn) return;
+
+            const form = btn.closest('form.js-delete-form');
+            if (!form) return;
+
+            const row = btn.closest('.row-card');
+            const titleCell = row ? row.querySelector('.cell[title]') : null;
+            const title = titleCell ? titleCell.getAttribute('title') : '';
+
+            openModal(form, title);
+        });
+
+        // Confirm delete
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                if (activeForm) activeForm.submit();
+            });
+        }
+
+        // Cancel delete
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+        // Close when clicking outside the card
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+                closeModal();
+            }
+        });
     })();
 </script>
 
