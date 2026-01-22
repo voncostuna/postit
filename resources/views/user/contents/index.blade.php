@@ -321,6 +321,7 @@ $q = request('q', '');
         padding: 14px 14px;
         background: #fff;
         box-shadow: 0 2px 0 rgba(0, 0, 0, .03);
+        text-align: center;
     }
 
     .cell {
